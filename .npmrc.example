@@ -1,3 +1,4 @@
-# Copy to .npmrc (git-ignored) and export NPM_TOKEN in your shell.
-# One npmjs token with read access to @mono.
-//registry.npmjs.org/:_authToken=${NPM_TOKEN}
+# Copy to .npmrc (git-ignored). Set GITLAB_PACKAGE_GROUP_ID and
+# GITLAB_NPM_TOKEN in your shell; the token needs read_package_registry access.
+@mono:registry=https://gitlab.com/api/v4/groups/${GITLAB_PACKAGE_GROUP_ID}/-/packages/npm/
+//gitlab.com/api/v4/groups/${GITLAB_PACKAGE_GROUP_ID}/-/packages/npm/:_authToken=${GITLAB_NPM_TOKEN}

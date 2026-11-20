@@ -1,7 +1,7 @@
 name: Publish
 
 # `pnpm release` (release-it) bumps the version, writes CHANGELOG.md, tags
-# v<version> and pushes. This job publishes that tag to npmjs.org.
+# v<version> and pushes. This job publishes that tag to GitLab Package Registry.
 on:
   push:
     tags: ["v*"]
@@ -19,15 +19,28 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
-      - name: Configure npm token
+      - name: Configure GitLab npm registry
         env:
-          NPM_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
-        run: printf '//registry.npmjs.org/:_authToken=%s\n' "$NPM_TOKEN" > ~/.npmrc
+          GITLAB_NPM_TOKEN: ${{ secrets.GITLAB_NPM_TOKEN }}
+          GITLAB_PACKAGE_GROUP_ID: ${{ vars.GITLAB_PACKAGE_GROUP_ID }}
+          GITLAB_PACKAGE_PROJECT_ID: ${{ vars.GITLAB_PACKAGE_PROJECT_ID }}
+        run: |
+          set -eu
+          : "${GITLAB_NPM_TOKEN:?Set the GITLAB_NPM_TOKEN secret}"
+          : "${GITLAB_PACKAGE_GROUP_ID:?Set the GITLAB_PACKAGE_GROUP_ID Actions variable}"
+          : "${GITLAB_PACKAGE_PROJECT_ID:?Set the GITLAB_PACKAGE_PROJECT_ID Actions variable}"
+          {
+            printf '@mono:registry=https://gitlab.com/api/v4/groups/%s/-/packages/npm/\n' "$GITLAB_PACKAGE_GROUP_ID"
+            printf '//gitlab.com/api/v4/groups/%s/-/packages/npm/:_authToken=%s\n' "$GITLAB_PACKAGE_GROUP_ID" "$GITLAB_NPM_TOKEN"
+            printf '//gitlab.com/api/v4/projects/%s/packages/npm/:_authToken=%s\n' "$GITLAB_PACKAGE_PROJECT_ID" "$GITLAB_NPM_TOKEN"
+          } > "$HOME/.npmrc"
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint && pnpm typecheck && pnpm test:coverage
       # Pre-release versions (1.2.0-rc.1) go to the `next` dist-tag, never `latest`.
       - name: Publish
+        env:
+          GITLAB_PACKAGE_PROJECT_ID: ${{ vars.GITLAB_PACKAGE_PROJECT_ID }}
         run: |
           VERSION=$(node -p "require('./package.json').version")
           TAG=latest; case "$VERSION" in *-*) TAG=next;; esac
-          pnpm publish --no-git-checks --tag "$TAG"
+          pnpm publish --registry "https://gitlab.com/api/v4/projects/${GITLAB_PACKAGE_PROJECT_ID}/packages/npm/" --no-git-checks --tag "$TAG"

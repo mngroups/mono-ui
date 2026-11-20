@@ -4,7 +4,8 @@ The MoNo UI design system: React 19 components on top of [shadcn/ui](https://ui.
 
 ## Install
 
-The package is private on npmjs.org. Copy `.npmrc.example` to `.npmrc` (git-ignored) and export `NPM_TOKEN` (one token with read access to `@mono`). Then:
+The package is private in GitLab Package Registry. Copy `.npmrc.example` to `.npmrc` and set
+`GITLAB_PACKAGE_GROUP_ID` plus a `GITLAB_NPM_TOKEN` with `read_package_registry` access. Then:
 
 ```bash
 pnpm add @mono/ui @mono/hooks @mono/utils
@@ -106,9 +107,11 @@ pnpm lint && pnpm typecheck && pnpm test:coverage && pnpm build && pnpm storyboo
 
 - Source and tests live in `src/<component>/` with tests in `__tests__/`. Coverage is enforced at 100%.
 - Relative imports carry the `.js` extension; the build is plain `tsc` (per-file ESM, `"use client"` kept), with CSS copied to `dist/styles/`.
-- Until `@mono/utils` and `@mono/hooks` are published, `pnpm.overrides` links them from `../mono-utils` and `../mono-hooks`. **Remove those overrides before the first publish.**
+- Until `@mono/utils` and `@mono/hooks` are published to GitLab Package Registry, `pnpm.overrides`
+  links them from `../mono-utils` and `../mono-hooks`. **Remove those overrides and refresh the
+  lockfile after publishing both dependencies, before releasing this package.**
 - Commits: `<type>: <subject>` with `type` in `feat|fix|ai|ops|perf|refactor|test|chore|docs|change|remove` (no scope).
 
 ## Releasing
 
-`pnpm release` (or `pnpm release:rc`) bumps the version, updates `CHANGELOG.md`, tags `v<version>` and pushes. The **Publish** workflow publishes the tag to npmjs.org (pre-releases go to the `next` dist-tag). It needs the `NPM_PUBLISH_TOKEN` secret; PR checks need `NPM_TOKEN` (read access to `@mono`).
+`pnpm release` (or `pnpm release:rc`) bumps the version, updates `CHANGELOG.md`, tags `v<version>` and pushes. The **Publish** workflow publishes the tag to this project's GitLab Package Registry (pre-releases go to the `next` dist-tag). Configure the GitHub Actions secret `GITLAB_NPM_TOKEN` and variables `GITLAB_PACKAGE_GROUP_ID` and `GITLAB_PACKAGE_PROJECT_ID` as described in `@mono/utils`'s README.
