@@ -2,7 +2,8 @@ module.exports = {
   // The Publish workflow publishes the pushed tag; release-it never runs `npm publish`.
   npm: { publish: false },
   git: {
-    commitMessage: "chore: release ${version}",
+    commitMessage:
+      "chore: release ${version}\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>",
     push: true,
     tagName: "v${version}",
   },
