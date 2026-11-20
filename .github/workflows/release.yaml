@@ -6,6 +6,15 @@ on:
   push:
     tags: ["v*"]
   workflow_dispatch:
+    inputs:
+      operation:
+        description: Prepare the registry lockfile or publish the current version
+        required: true
+        type: choice
+        options:
+          - prepare-lockfile
+          - publish
+        default: prepare-lockfile
 
 permissions:
   contents: read
@@ -33,12 +42,27 @@ jobs:
           {
             printf '@mono:registry=https://gitlab.com/api/v4/groups/%s/-/packages/npm/\n' "$GITLAB_PACKAGE_GROUP_ID"
             printf '//gitlab.com/api/v4/groups/%s/-/packages/npm/:_authToken=%s\n' "$GITLAB_PACKAGE_GROUP_ID" "$GITLAB_NPM_TOKEN"
+            printf '//gitlab.com/api/v4/projects/89199789/packages/npm/:_authToken=%s\n' "$GITLAB_NPM_TOKEN"
+            printf '//gitlab.com/api/v4/projects/89199810/packages/npm/:_authToken=%s\n' "$GITLAB_NPM_TOKEN"
             printf '//gitlab.com/api/v4/projects/%s/packages/npm/:_authToken=%s\n' "$GITLAB_PACKAGE_PROJECT_ID" "$GITLAB_NPM_TOKEN"
           } > "$HOME/.npmrc"
-      - run: pnpm install --frozen-lockfile
+      - name: Install dependencies for lockfile preparation
+        if: github.event_name == 'workflow_dispatch' && inputs.operation == 'prepare-lockfile'
+        run: pnpm install --no-frozen-lockfile
+      - name: Install dependencies for release
+        if: github.event_name == 'push' || inputs.operation == 'publish'
+        run: pnpm install --frozen-lockfile
       - run: pnpm lint && pnpm typecheck && pnpm test:coverage
+      - name: Upload prepared lockfile
+        if: github.event_name == 'workflow_dispatch' && inputs.operation == 'prepare-lockfile'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pnpm-lock
+          path: pnpm-lock.yaml
+          if-no-files-found: error
       # Pre-release versions (1.2.0-rc.1) go to the `next` dist-tag, never `latest`.
       - name: Publish
+        if: github.event_name == 'push' || inputs.operation == 'publish'
         env:
           GITLAB_NPM_TOKEN: ${{ secrets.GITLAB_NPM_TOKEN }}
           GITLAB_PACKAGE_PROJECT_ID: ${{ vars.GITLAB_PACKAGE_PROJECT_ID }}

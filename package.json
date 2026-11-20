@@ -64,8 +64,8 @@
     "*.{js,cjs,mjs,ts,tsx,json,jsonc,css,md}": "biome check --write --no-errors-on-unmatched"
   },
   "dependencies": {
-    "@mono/hooks": "^0.1.0",
-    "@mono/utils": "^0.1.0",
+    "@mono/hooks": "^0.2.0",
+    "@mono/utils": "^0.2.0",
     "@radix-ui/react-avatar": "^1.1.11",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
@@ -163,11 +163,5 @@
     "vite": "^7.1.0",
     "vitest": "^4.1.12",
     "zod": "^4.6.7"
-  },
-  "pnpm": {
-    "overrides": {
-      "@mono/utils": "link:../mono-utils",
-      "@mono/hooks": "link:../mono-hooks"
-    }
   }
 }
