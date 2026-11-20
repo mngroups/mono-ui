@@ -14,10 +14,11 @@ on:
         options:
           - prepare-lockfile
           - publish
+          - release
         default: prepare-lockfile
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   publish:
@@ -50,9 +51,19 @@ jobs:
         if: github.event_name == 'workflow_dispatch' && inputs.operation == 'prepare-lockfile'
         run: pnpm install --no-frozen-lockfile
       - name: Install dependencies for release
-        if: github.event_name == 'push' || inputs.operation == 'publish'
+        if: github.event_name == 'push' || inputs.operation == 'publish' || inputs.operation == 'release'
         run: pnpm install --frozen-lockfile
       - run: pnpm lint && pnpm typecheck && pnpm test:coverage
+      - name: Configure Git identity
+        if: github.event_name == 'workflow_dispatch' && inputs.operation == 'release'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Create GitHub release
+        if: github.event_name == 'workflow_dispatch' && inputs.operation == 'release'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: pnpm release --ci --increment=minor
       - name: Upload prepared lockfile
         if: github.event_name == 'workflow_dispatch' && inputs.operation == 'prepare-lockfile'
         uses: actions/upload-artifact@v4
@@ -62,7 +73,7 @@ jobs:
           if-no-files-found: error
       # Pre-release versions (1.2.0-rc.1) go to the `next` dist-tag, never `latest`.
       - name: Publish
-        if: github.event_name == 'push' || inputs.operation == 'publish'
+        if: github.event_name == 'push' || inputs.operation == 'publish' || inputs.operation == 'release'
         env:
           GITLAB_NPM_TOKEN: ${{ secrets.GITLAB_NPM_TOKEN }}
           GITLAB_PACKAGE_PROJECT_ID: ${{ vars.GITLAB_PACKAGE_PROJECT_ID }}
