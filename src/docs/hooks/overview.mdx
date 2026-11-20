@@ -1,0 +1,48 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Hooks/Overview" />
+
+# @mono/hooks
+
+React hooks shared by MoNo apps and used inside `@mono/ui`. Every hook is client-only (`"use client"` in the built files).
+
+```bash
+pnpm add @mono/hooks @mono/utils
+```
+
+Peers: `react` 19+. Optional, only for their subpath: `next` for `@mono/hooks/next`, `zustand` + `react-hook-form` for `@mono/hooks/form-draft`.
+
+---
+
+## Pages
+
+| Page | Exports | Entry point |
+| --- | --- | --- |
+| [useIsMobile](?path=/docs/hooks-useismobile--docs) | `useIsMobile`, `MOBILE_BREAKPOINT` | `@mono/hooks` |
+| [Theme](?path=/docs/hooks-theme--docs) | `ThemeProvider`, `useTheme`, `getThemeInitScript` | `@mono/hooks` |
+| [WITA time](?path=/docs/hooks-wita-time--docs) | `useWitaToday`, `useWitaTodayDate`, `useWitaNow` | `@mono/hooks` |
+| [useLongPress](?path=/docs/hooks-uselongpress--docs) | `useLongPress` | `@mono/hooks` |
+| [useDragDismiss](?path=/docs/hooks-usedragdismiss--docs) | `useDragDismiss` | `@mono/hooks` |
+| [useZoomPan](?path=/docs/hooks-usezoompan--docs) | `useZoomPan` | `@mono/hooks` |
+| [useScrollActiveTab](?path=/docs/hooks-usescrollactivetab--docs) | `useScrollActiveTab` | `@mono/hooks` |
+| [Form drafts](?path=/docs/hooks-form-drafts--docs) | `useFormDraft`, `useDraftState`, `clearAllFormDrafts`, … | `@mono/hooks/form-draft` |
+| [Modal URL state](?path=/docs/hooks-modal-url-state--docs) | `useModalParam`, `useModalToggle` | `@mono/hooks/next` |
+
+The pages with a demo run the real hooks from the installed package. The package README carries the same API in short form.
+
+---
+
+## Testing in an app
+
+Inline the packages in Vitest so `vi.mock("next/navigation")` reaches them, and mock `@mono/hooks` partially:
+
+```ts
+// vitest.config.ts
+test: { server: { deps: { inline: [/@mono\//] } } }
+
+// a test
+vi.mock("@mono/hooks", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@mono/hooks")>()),
+  useIsMobile: () => true,
+}));
+```

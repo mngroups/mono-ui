@@ -1,0 +1,22 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+import { TypeScale } from "../../.storybook/docs/foundations";
+
+<Meta title="Design Tokens/Typography" />
+
+# Typography
+
+Headings share one weight (`--heading-weight`, 700) and a slight negative tracking (`--heading-tracking`). Sizes are tokens, so an app can tune the scale without touching components. `h1`–`h5` get the scale by default; use `.heading-h1` … `.heading-h5` to give the same look to other elements.
+
+<TypeScale />
+
+## Tokens
+
+| Token | Value |
+| --- | --- |
+| `--heading-weight` | `700` |
+| `--heading-tracking` | `-0.01em` |
+| `--heading-h1-size` / `-leading` | `2.25rem` / `40px` |
+| `--heading-h2-size` / `-leading` | `1.875rem` / `34px` |
+| `--heading-h3-size` / `-leading` | `1.5rem` / `28px` |
+| `--heading-h4-size` / `-leading` | `1.25rem` / `24px` |
+| `--heading-h5-size` / `-leading` | `1.125rem` / `22px` |

@@ -1,0 +1,69 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+import {
+  formatWitaDateTime,
+  formatWitaLocale,
+  toWita,
+  WITA_TZ,
+  witaCalendarDay,
+  witaDateString,
+  witaDateToLocalDate,
+  witaNow,
+} from "@mono/utils";
+import dayjs from "@mono/utils/dayjs";
+import { LiveExamples } from "../../../.storybook/docs/live-examples";
+
+<Meta title="Utils/Dates (WITA)" />
+
+# Dates (WITA)
+
+Operations run on WITA (`Asia/Makassar`, UTC+8) whatever the browser's timezone. These helpers make "today", display formats and API dates WITA-correct on a laptop in Jakarta or a phone abroad.
+
+```ts
+import { witaDateString, formatWitaDateTime, toWita } from "@mono/utils";
+import dayjs from "@mono/utils/dayjs";
+```
+
+Always import `dayjs` from `@mono/utils/dayjs`, not the bare package: it registers `utc`, `timezone`, `customParseFormat`, the `id` locale, and WITA as the default timezone.
+
+---
+
+## Reference
+
+| Function | Returns |
+| --- | --- |
+| `WITA_TZ` | `"Asia/Makassar"` |
+| `witaNow()` | Current instant as a WITA `dayjs` |
+| `toWita(value)` | Any instant (ISO string, `Date`, epoch; naive backend timestamps are read as UTC) as a WITA `dayjs` |
+| `witaDateString(offsetDays = 0)` | WITA calendar date `"YYYY-MM-DD"`, e.g. `-1` for H-1. Send this to the API |
+| `witaTodayDate(offsetDays = 0)` | Today's WITA day as a local-midnight `Date`, for date pickers |
+| `witaDateToLocalDate(iso)` | A `"YYYY-MM-DD"` as a local-midnight `Date`, for date pickers |
+| `witaCalendarDay(date)` | A picker's selected `Date` read as a WITA day (`dayjs`), before building an API range |
+| `formatWitaDateTime(value, format)` | An instant formatted in WITA with a dayjs format string |
+| `formatWitaLocale(value, options)` | An instant formatted with `Intl` (`id-ID`) in WITA |
+
+## Live
+
+Values below are computed now, in your browser's timezone, and still come out in WITA.
+
+<LiveExamples
+  rows={[
+    { code: "WITA_TZ", result: WITA_TZ },
+    { code: "witaDateString()", result: witaDateString() },
+    { code: "witaDateString(-1)", result: witaDateString(-1) },
+    { code: 'witaNow().format("YYYY-MM-DD HH:mm")', result: witaNow().format("YYYY-MM-DD HH:mm") },
+    { code: 'toWita("2026-11-20T01:30:00Z").format("DD MMM YYYY HH:mm")', result: toWita("2026-11-20T01:30:00Z").format("DD MMM YYYY HH:mm") },
+    { code: 'formatWitaDateTime("2026-11-19T17:00:00Z", "dddd, D MMMM YYYY")', result: formatWitaDateTime("2026-11-19T17:00:00Z", "dddd, D MMMM YYYY") },
+    { code: 'formatWitaLocale(new Date("2026-11-20T01:30:00Z"), { dateStyle: "medium", timeStyle: "short" })', result: formatWitaLocale(new Date("2026-11-20T01:30:00Z"), { dateStyle: "medium", timeStyle: "short" }) },
+    { code: 'witaDateToLocalDate("2026-11-20").toDateString()', result: witaDateToLocalDate("2026-11-20").toDateString() },
+    { code: 'witaCalendarDay(new Date(2026, 10, 20)).format("YYYY-MM-DD")', result: witaCalendarDay(new Date(2026, 10, 20)).format("YYYY-MM-DD") },
+    { code: 'dayjs("2026-11-20").locale()', result: dayjs("2026-11-20").locale() },
+  ]}
+/>
+
+---
+
+## Rules of thumb
+
+- **API dates:** `witaDateString()` or `witaCalendarDay(selected).format("YYYY-MM-DD")`, never `new Date().toISOString().slice(0, 10)` (that is the UTC date).
+- **Pickers:** feed them `witaTodayDate()` / `witaDateToLocalDate(iso)`; the components in `@mono/ui` already do.
+- **Live "today" in React:** use `useWitaToday()` from `@mono/hooks`; it advances at WITA midnight on a page left open.

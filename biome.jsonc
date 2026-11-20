@@ -1,0 +1,104 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+  "files": {
+    "ignoreUnknown": true,
+    "includes": [
+      "**",
+      "!**/node_modules",
+      "!**/dist",
+      "!**/coverage",
+      "!**/storybook-static",
+      "!pnpm-lock.yaml",
+      // Written by release-it on every release; its format is not ours to enforce.
+      "!CHANGELOG.md"
+    ]
+  },
+  "formatter": { "enabled": true, "indentStyle": "space", "indentWidth": 2, "lineWidth": 100 },
+  "css": { "parser": { "tailwindDirectives": true } },
+  "tailwind": {
+    "stylesheet": "./.storybook/preview.css",
+    "mergeFunctions": ["cn", "clsx", "twMerge"],
+    "variantFunctions": ["cva"]
+  },
+  "javascript": {
+    "formatter": { "quoteStyle": "double", "semicolons": "always", "trailingCommas": "es5" }
+  },
+  // Same rule set as mining-ops-fe (see its biome.jsonc for why each rule is off).
+  "linter": {
+    "enabled": true,
+    "domains": { "react": "recommended", "tailwind": "recommended" },
+    "rules": {
+      "preset": "recommended",
+      "a11y": {
+        "noLabelWithoutControl": "off",
+        "noStaticElementInteractions": "off",
+        "noSvgWithoutTitle": "off",
+        "useButtonType": "off",
+        "useFocusableInteractive": "off",
+        "useKeyWithClickEvents": "off",
+        "useSemanticElements": "off"
+      },
+      "complexity": { "noImportantStyles": "off" },
+      "correctness": {
+        "noUnusedVariables": "error",
+        "noUnusedImports": "error",
+        // Effect deps used purely as re-run triggers (e.g. scroll on `activeKey`) are intended.
+        "useExhaustiveDependencies": {
+          "level": "error",
+          "options": { "reportUnnecessaryDependencies": false }
+        },
+        "useHookAtTopLevel": "error",
+        "noComponentHookFactories": "off",
+        // Buttons go through ui/: Button (shadcn) for standard ones, PlainButton for custom-styled ones.
+        "noRestrictedElements": {
+          "level": "error",
+          "options": {
+            "elements": {
+              "button": "use PlainButton (ui/plain-button) or Button (ui/button) instead of a native <button>"
+            }
+          }
+        }
+      },
+      "security": { "noDangerouslySetInnerHtml": "off" },
+      "style": {
+        "useImportType": "error",
+        "useExportType": "error",
+        "noNonNullAssertion": "off"
+      },
+      "suspicious": {
+        "noArrayIndexKey": "off",
+        "noAssignInExpressions": "off",
+        // SidebarProvider persists its open state in a non-HttpOnly UI cookie.
+        "noDocumentCookie": "off",
+        "noImplicitAnyLet": "off",
+        "noRedeclare": "off",
+        "noShadowRestrictedNames": "off",
+        // release-it's `${version}` placeholders.
+        "noTemplateCurlyInString": "off",
+        "useIterableCallbackReturn": "off"
+      },
+      "nursery": {
+        "useTailwindSortedClasses": { "level": "error", "fix": "safe" }
+      }
+    }
+  },
+  "assist": { "enabled": true, "actions": { "source": { "organizeImports": "on" } } },
+  "overrides": [
+    {
+      "includes": ["vitest.setup.*", "**/__tests__/**"],
+      "linter": {
+        "rules": {
+          "performance": { "noImgElement": "off" },
+          "correctness": { "noRestrictedElements": "off" },
+          "suspicious": { "noExplicitAny": "off", "noThenProperty": "off" }
+        }
+      }
+    },
+    {
+      // Hand-written ambient declarations for untyped d3 modules.
+      "includes": ["src/types/**"],
+      "linter": { "rules": { "suspicious": { "noExplicitAny": "off" } } }
+    }
+  ]
+}

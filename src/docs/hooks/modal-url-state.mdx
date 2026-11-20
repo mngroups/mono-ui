@@ -1,0 +1,47 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Hooks/Modal URL state" />
+
+# Modal URL state
+
+Keeps a modal form's open state in the URL, `?modal=<mode>&target=<id>`, so the open form is linkable, survives a refresh, and the browser's back button closes it. Next.js App Router only (it reads `usePathname` / `useSearchParams`), so there is no live demo here.
+
+```ts
+import { useModalParam, useModalToggle } from "@mono/hooks/next";
+```
+
+---
+
+## `useModalToggle(mode, target?)`
+
+A drop-in for `useState(false)` for one modal.
+
+```tsx
+const [createOpen, setCreateOpen] = useModalToggle("create");
+
+<Button onClick={() => setCreateOpen(true)}>Tambah</Button>
+<DynamicModal open={createOpen} onOpenChange={setCreateOpen} title="Tambah data">
+  …
+</DynamicModal>
+```
+
+With `target`, the modal is open only for that record: `useModalToggle("edit", row.id)`.
+
+## `useModalParam(modes)`
+
+For screens with several modals or a record target.
+
+```tsx
+const MODES = ["create", "edit"] as const;
+const { modal, openModal, closeModal } = useModalParam(MODES);
+// modal: { mode: "create" | "edit"; target: string | null } | null
+
+openModal("edit", row.id); // → ?modal=edit&target=<id>
+closeModal();
+```
+
+- `modes` is a whitelist: a `?modal=` value owned by another screen is ignored.
+- Opening pushes a history entry, so back closes the modal; a deep link has nothing to go back to, so closing it just drops the params.
+- It uses the App Router's patched `history` API instead of `router.push`, so the modal opens without an RSC round-trip.
+
+Pair it with [form drafts](?path=/docs/hooks-form-drafts--docs) so a refreshed modal comes back with what the user typed.

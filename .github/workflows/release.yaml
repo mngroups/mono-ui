@@ -1,0 +1,33 @@
+name: Publish
+
+# `pnpm release` (release-it) bumps the version, writes CHANGELOG.md, tags
+# v<version> and pushes. This job publishes that tag to npmjs.org.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - run: corepack enable
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - name: Configure npm token
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
+        run: printf '//registry.npmjs.org/:_authToken=%s\n' "$NPM_TOKEN" > ~/.npmrc
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint && pnpm typecheck && pnpm test:coverage
+      # Pre-release versions (1.2.0-rc.1) go to the `next` dist-tag, never `latest`.
+      - name: Publish
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          TAG=latest; case "$VERSION" in *-*) TAG=next;; esac
+          pnpm publish --no-git-checks --tag "$TAG"

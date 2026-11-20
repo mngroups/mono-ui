@@ -1,0 +1,29 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Utils/Overview" />
+
+# @mono/utils
+
+Framework-agnostic helpers shared by MoNo apps and used inside `@mono/ui`: class names, Indonesian number formatting, WITA dates, and a few string and URL guards. No React, so they also run on the server and in Node scripts.
+
+```bash
+pnpm add @mono/utils
+```
+
+```ts
+import { cn, formatIndonesianNumber, witaDateString } from "@mono/utils";
+import dayjs from "@mono/utils/dayjs";
+```
+
+---
+
+## Pages
+
+| Page | Exports |
+| --- | --- |
+| [Class names & errors](?path=/docs/utils-class-names-errors--docs) | `cn`, `getErrorMessage`, `DEFAULT_ERROR_MESSAGE` |
+| [Numbers](?path=/docs/utils-numbers--docs) | `formatIndonesianNumber`, `formatFixedIndonesian`, `formatDecimalIndonesian`, `formatDisplayNumber`, `detectUnit`, `formatValue`, `formatK` |
+| [Dates (WITA)](?path=/docs/utils-dates-wita--docs) | `toWita`, `witaNow`, `witaDateString`, `witaTodayDate`, `witaDateToLocalDate`, `witaCalendarDay`, `formatWitaDateTime`, `formatWitaLocale`, `WITA_TZ`, `dayjs` |
+| [Strings & URLs](?path=/docs/utils-strings-urls--docs) | `maskEmail`, `sanitizeSameOriginPath` |
+
+Every result on these pages is computed live from the installed package, so it always matches the version `@mono/ui` uses. The package README carries the same API in short form.

@@ -1,0 +1,57 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+import { ColorTokens } from "../../.storybook/docs/foundations";
+
+<Meta title="Design Tokens/Colors" />
+
+# Colors
+
+Components never use raw colours. They use semantic tokens (CSS variables) that `styles.css` defines for light and dark, and Tailwind utilities generated from them (`bg-primary`, `text-muted-foreground`, …). Switch the **Mode** in the toolbar: the values below update live.
+
+## Brand
+
+Set in `theme-default.css`. Override these four to rebrand; everything below derives from them.
+
+<ColorTokens
+  tokens={[
+    { name: "--brand", description: "Main brand colour; light-mode primary." },
+    { name: "--brand-dark", description: "Hover / strong text on light surfaces." },
+    { name: "--brand-soft", description: "Tinted backgrounds (accent)." },
+    { name: "--brand-light", description: "Dark-mode primary." },
+  ]}
+/>
+
+## Surfaces
+
+<ColorTokens
+  tokens={[
+    { name: "--background", utility: "bg-background", description: "Page background." },
+    { name: "--foreground", utility: "text-foreground", description: "Default text." },
+    { name: "--card", utility: "bg-card", description: "Cards and panels." },
+    { name: "--popover", utility: "bg-popover", description: "Menus, popovers, tooltips." },
+    { name: "--muted", utility: "bg-muted", description: "Subtle fills, disabled areas." },
+    { name: "--muted-foreground", utility: "text-muted-foreground", description: "Secondary text." },
+  ]}
+/>
+
+## Actions & status
+
+<ColorTokens
+  tokens={[
+    { name: "--primary", utility: "bg-primary", description: "Primary actions, links, focus." },
+    { name: "--primary-foreground", utility: "text-primary-foreground", description: "Text on primary." },
+    { name: "--secondary", utility: "bg-secondary", description: "Secondary buttons." },
+    { name: "--accent", utility: "bg-accent", description: "Hover and selected states." },
+    { name: "--accent-foreground", utility: "text-accent-foreground", description: "Text on accent." },
+    { name: "--destructive", utility: "bg-destructive", description: "Delete, errors." },
+  ]}
+/>
+
+## Lines
+
+<ColorTokens
+  tokens={[
+    { name: "--border", utility: "border-border", description: "Dividers and outlines." },
+    { name: "--input", utility: "border-input", description: "Form control borders." },
+    { name: "--ring", utility: "ring-ring", description: "Focus ring." },
+  ]}
+/>

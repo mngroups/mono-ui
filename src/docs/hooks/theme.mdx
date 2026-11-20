@@ -1,0 +1,72 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Hooks/Theme" />
+
+# Theme
+
+Light / dark mode as the `dark` class on `<html>`, which every `@mono/ui` component and the Tailwind `dark:` variant read. The **Mode** button in this Storybook's toolbar does the same thing.
+
+```ts
+import { ThemeProvider, useTheme, getThemeInitScript } from "@mono/hooks";
+```
+
+---
+
+## Setup (Next.js App Router)
+
+Wrap the app once, and run the init script in `<head>` so a dark-mode user never sees a light flash before hydration. Pass the same options to both.
+
+```tsx
+// app/layout.tsx (Server Component)
+import { getThemeInitScript } from "@mono/hooks";
+import { Providers } from "./providers";
+
+const THEME = { storageKey: "my-app-theme", defaultTheme: "light" } as const;
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="id" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: getThemeInitScript(THEME) }} />
+      </head>
+      <body>
+        <Providers theme={THEME}>{children}</Providers>
+      </body>
+    </html>
+  );
+}
+```
+
+```tsx
+// app/providers.tsx
+"use client";
+import { ThemeProvider } from "@mono/hooks";
+
+export function Providers({ theme, children }) {
+  return <ThemeProvider {...theme}>{children}</ThemeProvider>;
+}
+```
+
+`getThemeInitScript` lives in a module without `"use client"`, so a Server Component can call it.
+
+---
+
+## Options
+
+| Option | Default | |
+| --- | --- | --- |
+| `storageKey` | `"monexa-theme"` | `localStorage` key for the user's choice. Give each app its own |
+| `defaultTheme` | `"light"` | Used when nothing is stored |
+| `forcedTheme` | — | Pins the theme (e.g. a dark-only kiosk): `setTheme` / `toggleTheme` become no-ops and nothing is stored |
+
+## `useTheme()`
+
+```tsx
+const { theme, setTheme, toggleTheme } = useTheme();
+
+<Button variant="ghost" onClick={toggleTheme}>
+  {theme === "dark" ? "Mode terang" : "Mode gelap"}
+</Button>;
+```
+
+Pass `theme` to `@mono/ui`'s `<Toaster theme={theme} />` so toasts follow it.

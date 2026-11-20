@@ -1,0 +1,9 @@
+node_modules
+dist
+coverage
+*.tsbuildinfo
+.DS_Store
+.env*
+# Holds registry tokens; copy .npmrc.example and keep it local.
+.npmrc
+storybook-static

@@ -1,0 +1,41 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Introduction/Guidelines" />
+
+# Guidelines
+
+Rules every screen built with MoNo UI follows.
+
+---
+
+## Loading states use skeletons
+
+Use `Skeleton` or `TableSkeleton` shaped like the real content. Never show a `"Memuat…"` string or a lone spinner.
+
+## Everything works at 360px
+
+Check every screen at 360px wide. There is one breakpoint, `md` (768px): prefer `max-md:` / `md:` utilities, and use `useIsMobile()` from `@mono/hooks` only when the component tree itself differs.
+
+## Copy is Indonesian by default
+
+User-facing text in components and examples is Indonesian (`Simpan`, `Batal`, `Data tidak tersedia`).
+
+## Compose classes with `cn()`
+
+Use `cn()` from `@mono/utils`, never string concatenation:
+
+```tsx
+// Do
+cn("px-4", isActive && "bg-accent", className);
+
+// Don't
+"px-4 " + className;
+```
+
+## Buttons go through the library
+
+Use `Button` for standard buttons and `PlainButton` for custom-styled ones, never a raw `<button>`.
+
+## Fields share one look
+
+`Input`, `Textarea`, `Select` and the `Floating*` fields are all 48px high with `rounded-xl` corners and a primary border on focus. Use `size="sm"` (36px) on `Input` and `SelectTrigger` only in dense places such as toolbars and table rows.

@@ -1,0 +1,173 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Introduction/Getting Started" />
+
+# Getting Started
+
+**MoNo UI** (`@mono/ui`) is the MoNo design system for React 19: components built on [shadcn/ui](https://ui.shadcn.com) (Radix primitives + Tailwind CSS v4), the design tokens behind them, and the styles they need.
+
+---
+
+## Installation
+
+The package is private on npmjs.org. Copy `.npmrc.example` to `.npmrc` (git-ignored) and export `NPM_TOKEN`, one npm token with read access to `@mono`:
+
+```ini
+//registry.npmjs.org/:_authToken=${NPM_TOKEN}
+```
+
+Then install the package and its MoNo dependencies:
+
+```bash
+pnpm add @mono/ui @mono/hooks @mono/utils
+```
+
+`react` and `react-dom` 19 or newer are required. The other peers are optional; install them only for the parts you use:
+
+| Peer | Needed for |
+| --- | --- |
+| `react-hook-form` | `Form*`, `FloatingInput`, `FloatingSelect`, `FormDatePicker` |
+| `recharts` | `@mono/ui/charts`, `@mono/ui/markdown` |
+| `react-markdown`, `remark-gfm`, `d3-scale` | `@mono/ui/markdown` |
+| `@tanstack/react-query`, `pdfjs-dist`, `docx-preview`, `heic-to` | `@mono/ui/file-previewer` |
+| `tailwindcss` v4, `tw-animate-css` | the styles |
+
+---
+
+## Setup
+
+### 1. Import the styles
+
+Order matters: `styles.css` uses `@theme`, `@utility` and `@custom-variant`, so it must come after `@import "tailwindcss"`.
+
+```css
+/* app/globals.css */
+@import "tailwindcss";
+@import "tw-animate-css"; /* animate-in/out used by overlays */
+@import "@mono/ui/styles.css"; /* tokens, @theme bridge, utilities, base */
+@import "@mono/ui/theme-default.css"; /* MoNo brand; see Theme to swap it */
+
+/* Tailwind must scan the package so its classes are generated. */
+@source "../node_modules/@mono/ui/dist";
+```
+
+Dark mode is the `.dark` class on `<html>`; `ThemeProvider` from `@mono/hooks` sets it.
+
+### 2. Wire the app
+
+```tsx
+import { Toaster, UiConfigProvider } from "@mono/ui";
+
+<UiConfigProvider mobileNavV2={isFeatureEnabled("mobileNavigationV2")}>
+  {children}
+  <Toaster theme={theme} />
+</UiConfigProvider>;
+```
+
+`UiConfigProvider.mobileNavV2` switches the pinned mobile chrome of `DynamicModal` and `StickyFormFooter`. Both also take a `mobileNavV2` prop that wins over the provider.
+
+### 3. Add the app shell
+
+`AppShell` is the frame for a new app: sidebar (wide, icon rail, or rail + panel for menu groups), a mobile top bar, and an optional liquid-glass tab bar. It is router-agnostic: pass the current path and your router's link.
+
+```tsx
+// app/(protected)/layout.tsx → a client component
+"use client";
+
+import { AppShell, filterAppShellMenu } from "@mono/ui";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+export function Shell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const menu = filterAppShellMenu(MENU_ITEMS, canAccessRoute);
+  return (
+    <AppShell
+      menu={menu}
+      pathname={pathname}
+      linkComponent={Link}
+      brand={<img src="/logo.png" alt="MoNo" className="h-10" />}
+      user={{ name: user.name, description: user.company }}
+      onLogout={logout}
+      bottomNav={BOTTOM_NAV}
+    >
+      {children}
+    </AppShell>
+  );
+}
+```
+
+See [AppShell](?path=/docs/components-appshell--docs) for every option.
+
+---
+
+## Basic Usage
+
+Import components from the package root:
+
+```tsx
+import { Button } from "@mono/ui";
+
+export function SaveButton() {
+  return <Button onClick={() => console.log("saved")}>Simpan</Button>;
+}
+```
+
+Heavier components live behind subpaths, so apps that don't use them don't need their peers:
+
+| Import | Contents |
+| --- | --- |
+| `@mono/ui` | Buttons, forms, dates, overlays, navigation, data, status & feedback |
+| `@mono/ui/charts` | `TrendLineChart`, `ComboChart`, `ChartTooltip`, `LegendChip`, `useChartDetailSheet`, `useChartReveal` |
+| `@mono/ui/markdown` | `MarkdownRenderer`, `ChartRenderer`, `LinkPreview`, `parseChart` |
+| `@mono/ui/file-previewer` | `FilePreviewer` and file helpers |
+
+---
+
+## Next.js
+
+The package has no `next/*` imports, so it works in any React 19 app. Pass Next.js pieces in as props:
+
+- `PageHeader`: `linkComponent={Link}` (from `next/link`).
+- `ScrollToTop`: `resetKey={pathname}`.
+
+---
+
+## Testing with Vitest
+
+Inline the `@mono` packages in your app's Vitest config. Without it, Vitest loads `@mono/*` untransformed and `vi.mock("@mono/hooks")` doesn't reach their imports.
+
+```ts
+// vitest.config.ts
+test: {
+  server: { deps: { inline: [/@mono\//] } },
+}
+```
+
+Mock `@mono/hooks` partially so the other hooks keep working:
+
+```ts
+vi.mock("@mono/hooks", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@mono/hooks")>()),
+  useIsMobile: () => true,
+}));
+```
+
+---
+
+## Hooks, utils and feature flags
+
+- **[Hooks](?path=/docs/hooks-overview--docs)** (`@mono/hooks`): `useIsMobile`, theme, WITA time, gestures, form drafts and modal URL state, with live demos.
+- **[Utils](?path=/docs/utils-overview--docs)** (`@mono/utils`): `cn`, Indonesian number formatting, WITA dates, string and URL guards, with live results.
+- **Feature flags** are an app convention, not a library: the registry, the `flag:new` / `flag:remove` scripts and the guide live in the app template (`docs/guides/feature-flags.md`).
+
+---
+
+## Components
+
+Browse every component in the **Components** section of the sidebar. Each page includes:
+
+- The import line and an interactive example with live prop controls
+- All variants and states, with a 360px phone frame for components that change on mobile
+- Props documentation generated from the TypeScript types and JSDoc comments
+- Accessibility checks in the **Accessibility** tab of each story

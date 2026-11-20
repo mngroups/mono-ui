@@ -1,0 +1,50 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+import { cn, DEFAULT_ERROR_MESSAGE, getErrorMessage } from "@mono/utils";
+import { LiveExamples } from "../../../.storybook/docs/live-examples";
+
+<Meta title="Utils/Class names & errors" />
+
+# Class names & errors
+
+```ts
+import { cn, getErrorMessage, DEFAULT_ERROR_MESSAGE } from "@mono/utils";
+```
+
+---
+
+## `cn(...classes)`
+
+`clsx` + `tailwind-merge`: joins class names, drops falsy values, and lets the later Tailwind class win a conflict. Use it for every conditional or merged class list.
+
+<LiveExamples
+  rows={[
+    { code: 'cn("px-2 py-1", "px-4")', result: cn("px-2 py-1", "px-4") },
+    { code: 'cn("text-sm", false && "font-bold", undefined, "text-primary")', result: cn("text-sm", false && "font-bold", undefined, "text-primary") },
+    { code: 'cn("rounded-md", { "bg-accent": true, "opacity-50": false })', result: cn("rounded-md", { "bg-accent": true, "opacity-50": false }) },
+  ]}
+/>
+
+Never build class strings with `+`: Biome's class sorting trims the spaces inside each literal and silently glues the classes together.
+
+---
+
+## `getErrorMessage(error, fallback?)`
+
+User-readable text for anything caught in a `catch`: the `Error`'s message, otherwise `fallback` (default `DEFAULT_ERROR_MESSAGE`). Show the backend's Indonesian messages as they are.
+
+<LiveExamples
+  rows={[
+    { code: 'getErrorMessage(new Error("Site tidak ditemukan"))', result: getErrorMessage(new Error("Site tidak ditemukan")) },
+    { code: 'getErrorMessage("boom")', result: getErrorMessage("boom") },
+    { code: 'getErrorMessage(null, "Gagal menyimpan data")', result: getErrorMessage(null, "Gagal menyimpan data") },
+    { code: "DEFAULT_ERROR_MESSAGE", result: DEFAULT_ERROR_MESSAGE },
+  ]}
+/>
+
+```ts
+try {
+  await saveFuel(values);
+} catch (error) {
+  toast.error(getErrorMessage(error));
+}
+```

@@ -1,0 +1,22 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+import { RadiusScale, SpacingScale } from "../../.storybook/docs/foundations";
+
+<Meta title="Design Tokens/Radius & Spacing" />
+
+# Radius & Spacing
+
+## Radius
+
+One token, `--radius` (`0.625rem`), drives the Tailwind radius scale used by every component.
+
+<RadiusScale />
+
+## Spacing
+
+Tailwind's 4px spacing scale. Pages use a 16px gutter (`px-4`) on mobile.
+
+<SpacingScale />
+
+## Breakpoint
+
+There is one breakpoint: `md` (768px). Prefer `max-md:` / `md:` utilities. Use `useIsMobile()` from `@mono/hooks` only when the component tree itself differs between mobile and desktop.

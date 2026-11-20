@@ -1,0 +1,46 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+import { maskEmail, sanitizeSameOriginPath } from "@mono/utils";
+import { LiveExamples } from "../../../.storybook/docs/live-examples";
+
+<Meta title="Utils/Strings & URLs" />
+
+# Strings & URLs
+
+```ts
+import { maskEmail, sanitizeSameOriginPath } from "@mono/utils";
+```
+
+---
+
+## `maskEmail(email)`
+
+Hides most of the local part, e.g. on a "code sent to …" screen. Non-emails come back unchanged.
+
+<LiveExamples
+  rows={[
+    { code: 'maskEmail("budi.santoso@contoh.co.id")', result: maskEmail("budi.santoso@contoh.co.id") },
+    { code: 'maskEmail("ab@contoh.co.id")', result: maskEmail("ab@contoh.co.id") },
+    { code: 'maskEmail("bukan-email")', result: maskEmail("bukan-email") },
+  ]}
+/>
+
+---
+
+## `sanitizeSameOriginPath(value, fallback = "/")`
+
+Keeps a redirect or `history.pushState` target on this origin. Protocol-relative (`//evil.com`), absolute (`https://…`) and backslash tricks fall back to `fallback`. Use it on every `?redirect=` / `?next=` value.
+
+<LiveExamples
+  rows={[
+    { code: 'sanitizeSameOriginPath("/fuel?site=bontang")', result: sanitizeSameOriginPath("/fuel?site=bontang") },
+    { code: 'sanitizeSameOriginPath("//evil.example")', result: sanitizeSameOriginPath("//evil.example") },
+    { code: 'sanitizeSameOriginPath("https://evil.example/login")', result: sanitizeSameOriginPath("https://evil.example/login") },
+    { code: 'sanitizeSameOriginPath("/\\\\evil.example", "/dashboard")', result: sanitizeSameOriginPath("/\\evil.example", "/dashboard") },
+    { code: "sanitizeSameOriginPath(null, \"/dashboard\")", result: sanitizeSameOriginPath(null, "/dashboard") },
+  ]}
+/>
+
+```ts
+const target = sanitizeSameOriginPath(searchParams.get("redirect"), "/dashboard");
+router.replace(target);
+```

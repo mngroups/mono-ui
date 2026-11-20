@@ -1,0 +1,63 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+import {
+  detectUnit,
+  formatDecimalIndonesian,
+  formatDisplayNumber,
+  formatFixedIndonesian,
+  formatIndonesianNumber,
+  formatK,
+  formatValue,
+} from "@mono/utils";
+import { LiveExamples } from "../../../.storybook/docs/live-examples";
+
+<Meta title="Utils/Numbers" />
+
+# Numbers
+
+Indonesian (`id-ID`) formatting: `.` groups thousands, `,` marks decimals.
+
+```ts
+import { formatIndonesianNumber, formatDecimalIndonesian, formatValue } from "@mono/utils";
+```
+
+---
+
+## Formatting
+
+| Function | Use for |
+| --- | --- |
+| `formatIndonesianNumber(value, options?)` | Any number; `options` are `Intl.NumberFormatOptions` |
+| `formatDecimalIndonesian(value, maxDigits)` | Display values: up to `maxDigits` decimals, trailing zeros dropped |
+| `formatFixedIndonesian(value, digits)` | Fixed width, e.g. coordinates |
+| `formatDisplayNumber(value)` | Numbers or numeric strings from the API (`"1234.50"`); non-numeric strings come back unchanged |
+
+<LiveExamples
+  rows={[
+    { code: "formatIndonesianNumber(1234567.891)", result: formatIndonesianNumber(1234567.891) },
+    { code: "formatIndonesianNumber(0.256, { style: \"percent\" })", result: formatIndonesianNumber(0.256, { style: "percent" }) },
+    { code: "formatDecimalIndonesian(1.5, 2)", result: formatDecimalIndonesian(1.5, 2) },
+    { code: "formatFixedIndonesian(1.5, 2)", result: formatFixedIndonesian(1.5, 2) },
+    { code: "formatFixedIndonesian(-0.5123456, 6)", result: formatFixedIndonesian(-0.5123456, 6) },
+    { code: 'formatDisplayNumber("12480.50")', result: formatDisplayNumber("12480.50") },
+    { code: 'formatDisplayNumber("1,250")', result: formatDisplayNumber("1,250") },
+    { code: 'formatDisplayNumber("N/A")', result: formatDisplayNumber("N/A") },
+  ]}
+/>
+
+---
+
+## Chart values
+
+`detectUnit(value, key?)` guesses a unit from the series key (`percent`/`rate` → percent, `cost`/`revenue` → currency) or, without a hint, from the value (0–1 → percent, otherwise ton). `formatValue(value, unit)` renders it; `formatK` keeps two decimals for axis ticks.
+
+<LiveExamples
+  rows={[
+    { code: 'detectUnit(0.82, "achievement_rate")', result: detectUnit(0.82, "achievement_rate") },
+    { code: 'detectUnit(152000000, "fuel_cost")', result: detectUnit(152000000, "fuel_cost") },
+    { code: "detectUnit(12480)", result: detectUnit(12480) },
+    { code: 'formatValue(0.82, "percent")', result: formatValue(0.82, "percent") },
+    { code: 'formatValue(152000000, "currency")', result: formatValue(152000000, "currency") },
+    { code: 'formatValue(12480.4, "ton")', result: formatValue(12480.4, "ton") },
+    { code: "formatK(1234.5678)", result: formatK(1234.5678) },
+  ]}
+/>

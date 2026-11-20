@@ -1,0 +1,42 @@
+/* Consumer setup, as documented in the README. */
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "../src/styles/styles.css";
+@import "../src/styles/theme-default.css";
+
+@source "../src";
+@source "./docs";
+
+/* =========================================================
+   Docs pages: Storybook's standard blocks, themed by the docs container
+   (./docs/docs-container.tsx) to follow the Mode toolbar.
+   ========================================================= */
+.sbdocs.sbdocs-wrapper {
+  padding: 1.5rem 3rem !important;
+}
+
+/* Tailwind's preflight strips list markers; restore them in prose. */
+.sbdocs ul:not(.mono-docs-not-prose ul) {
+  list-style: disc;
+}
+
+.sbdocs ol:not(.mono-docs-not-prose ol) {
+  list-style: decimal;
+}
+
+/* Mobile stories (export name `Mobile…`, see ./docs/mobile.ts) render in their
+   own iframe on docs pages; narrow it to a 360px phone frame. */
+.sbdocs iframe[id^="iframe--"][id*="--mobile"] {
+  width: 360px !important;
+  max-width: 100%;
+  margin: 1.5rem auto;
+  display: block;
+  border: 8px solid #29313b;
+  border-radius: 28px;
+}
+
+@media (max-width: 640px) {
+  .sbdocs.sbdocs-wrapper {
+    padding: 1.5rem 1rem !important;
+  }
+}

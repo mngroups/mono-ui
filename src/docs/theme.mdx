@@ -1,0 +1,60 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Theme/Customizing" />
+
+# Customizing the Theme
+
+Components never use raw colours. They read semantic CSS variables (shadcn/ui tokens) that `styles.css` defines for light and dark mode, through Tailwind utilities such as `bg-primary` and `text-muted-foreground`.
+
+---
+
+## Rebrand
+
+`theme-default.css` sets four brand variables; `styles.css` derives `--primary`, `--accent`, `--ring` and `--primary-strong` from them. Write your own file with the same variables and import it instead of `theme-default.css`:
+
+```css
+/* app/globals.css */
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "@mono/ui/styles.css";
+@import "./my-theme.css";
+```
+
+```css
+/* my-theme.css */
+:root {
+  --brand: #0097b2; /* primary in light mode */
+  --brand-dark: #007a91; /* hover, strong text */
+  --brand-soft: #e5f5f8; /* accent: hover and selected backgrounds */
+  --brand-light: #009cdf; /* primary in dark mode */
+}
+
+.dark {
+  --brand-soft: #0a2a33;
+}
+```
+
+---
+
+## Override any token
+
+Any token from [Colors](?path=/docs/design-tokens-colors--docs), [Typography](?path=/docs/design-tokens-typography--docs) or [Radius & Spacing](?path=/docs/design-tokens-radius-spacing--docs) can be overridden the same way, for light (`:root`) and dark (`.dark`):
+
+```css
+:root {
+  --radius: 0.375rem;
+  --background: #fafaf9;
+  --border: #e7e5e4;
+  --heading-h1-size: 2rem;
+}
+
+.dark {
+  --background: #1c1917;
+}
+```
+
+---
+
+## Dark mode
+
+Dark mode is the `.dark` class on `<html>`. `ThemeProvider` from `@mono/hooks` toggles it and follows the OS when set to `system`.

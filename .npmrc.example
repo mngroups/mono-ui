@@ -1,0 +1,3 @@
+# Copy to .npmrc (git-ignored) and export NPM_TOKEN in your shell.
+# One npmjs token with read access to @mono.
+//registry.npmjs.org/:_authToken=${NPM_TOKEN}
