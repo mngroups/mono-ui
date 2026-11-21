@@ -1,5 +1,5 @@
-import { act, render, screen } from "@testing-library/react";
-import { Home, List, Map as MapIcon } from "lucide-react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
+import { Home, List, Map as MapIcon, Settings } from "lucide-react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { MobileBottomNav } from "../mobile-bottom-nav.js";
@@ -74,5 +74,36 @@ describe("MobileBottomNav", () => {
     expect(lens(container)).toHaveAttribute("data-moving", "false");
     rerender(<MobileBottomNav items={ITEMS} pathname="/settings" />);
     expect(lens(container)).toHaveAttribute("data-moving", "false");
+  });
+
+  it("adds a button tab after the links that can take the lens", async () => {
+    const onSelect = vi.fn();
+    const onNavigate = vi.fn();
+    const action = { label: "Pengaturan", icon: Settings, onSelect, testId: "tab-settings" };
+    const { container, rerender } = render(
+      <MobileBottomNav
+        items={ITEMS}
+        pathname="/map"
+        onNavigate={onNavigate}
+        action={{ ...action, active: false }}
+      />
+    );
+    const button = screen.getByRole("button", { name: "Pengaturan" });
+    expect(button).toHaveAttribute("aria-pressed", "false");
+    expect(lens(container).style.width).toMatch(/0\.25|\/ 4/);
+    expect(lens(container).style.transform).toBe("translateX(100%)");
+
+    fireEvent.click(button);
+    expect(onSelect).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByRole("link", { name: "Peta" }));
+    expect(onNavigate).toHaveBeenCalledTimes(1);
+
+    rerender(
+      <MobileBottomNav items={ITEMS} pathname="/map" action={{ ...action, active: true }} />
+    );
+    expect(screen.getByTestId("tab-settings")).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByTestId("tab-settings")).toHaveClass("text-primary");
+    expect(screen.getByRole("link", { name: "Peta" })).not.toHaveAttribute("aria-current");
+    expect(lens(container).style.transform).toBe("translateX(300%)");
   });
 });

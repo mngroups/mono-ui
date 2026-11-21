@@ -147,33 +147,38 @@ describe("AppShell on mobile", () => {
     mobile.value = true;
   });
 
-  it("opens the sidebar sheet from the top bar, lists the open group inline, closes on navigate", async () => {
-    const user = userEvent.setup();
-    renderShell({ pathname: "/unit/mapping", mobileHeaderAction: <span>Lonceng</span> });
-    expect(screen.getByText("Lonceng")).toBeInTheDocument();
-    expect(screen.getAllByText("MoNo")).toHaveLength(1);
-
-    await user.click(screen.getByRole("button", { name: "Buka menu" }));
-    const sheet = await screen.findByRole("dialog");
-    expect(within(sheet).queryByRole("button", { name: "Ciutkan sidebar" })).toBeNull();
-    // Mobile never nests: the open group's pages sit under its row.
-    expect(within(sheet).queryByRole("heading", { name: "Unit Management" })).toBeNull();
-    expect(within(sheet).getByTestId("menu-unit")).toHaveClass("text-primary");
-    const page = within(sheet).getByRole("link", { name: "Mapping Kontraktor" });
-    expect(page).toHaveAttribute("aria-current", "page");
-    expect(page).toHaveClass("py-3.5");
-
-    await user.click(page);
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  it("has no sidebar and no top bar or logo", () => {
+    const { container } = renderShell();
+    expect(sidebar(container)).toBeNull();
+    expect(container.querySelector("header")).toBeNull();
+    expect(screen.queryByText("MoNo")).not.toBeInTheDocument();
+    expect(screen.queryByRole("navigation", { name: "Navigasi utama" })).not.toBeInTheDocument();
   });
 
-  it("shows the bottom nav on a tab root only, padding the page for it", () => {
-    const { rerender } = renderShell({ bottomNav: BOTTOM_NAV, mobileHeader: false });
-    expect(screen.queryByRole("button", { name: "Buka menu" })).not.toBeInTheDocument();
+  it("shows the tabs plus Pengaturan on tab roots and menu pages, padding the page", async () => {
+    const { rerender } = renderShell({ bottomNav: BOTTOM_NAV });
     const main = screen.getByText("Isi halaman").closest("main");
     expect(main).toHaveClass("pt-safe", "max-md:pb-(--mobile-bottom-nav-height)");
-    expect(screen.getByRole("navigation", { name: "Navigasi utama" })).toBeInTheDocument();
+    const nav = screen.getByRole("navigation", { name: "Navigasi utama" });
+    expect(within(nav).getAllByRole("link")).toHaveLength(2);
     expect(screen.getByRole("link", { name: "Beranda" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByTestId("app-shell-settings-tab")).toHaveAttribute("aria-pressed", "false");
+
+    // A menu page that isn't a tab keeps the bar, with Pengaturan marked.
+    rerender(
+      <AppShell menu={MENU} pathname="/unit/mapping" brand="MoNo" bottomNav={BOTTOM_NAV}>
+        <p>Isi halaman</p>
+      </AppShell>
+    );
+    expect(screen.getByRole("button", { name: "Pengaturan" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Pengaturan" }));
+    expect(screen.getByRole("link", { name: "Mapping Kontraktor" })).toHaveAttribute(
+      "aria-current",
+      "page"
+    );
 
     rerender(
       <AppShell menu={MENU} pathname="/dashboard/42" brand="MoNo" bottomNav={BOTTOM_NAV}>
@@ -184,6 +189,150 @@ describe("AppShell on mobile", () => {
     expect(screen.getByText("Isi halaman").closest("main")).not.toHaveClass(
       "max-md:pb-(--mobile-bottom-nav-height)"
     );
+  });
+
+  it("uses at most five tabs; the rest move to Pengaturan", async () => {
+    const user = userEvent.setup();
+    const many: AppShellEntry[] = Array.from({ length: 7 }, (_, i) => ({
+      href: `/p${i}`,
+      label: `Page ${i}`,
+      icon: Home,
+    }));
+    render(
+      <AppShell
+        menu={many}
+        pathname="/p0"
+        brand="MoNo"
+        bottomNav={many as AppShellNavItem[]}
+        settingsLabel="Lainnya"
+      >
+        <p>Isi halaman</p>
+      </AppShell>
+    );
+    const nav = screen.getByRole("navigation", { name: "Navigasi utama" });
+    expect(within(nav).getAllByRole("link")).toHaveLength(5);
+    await user.click(screen.getByRole("button", { name: "Lainnya" }));
+    const settings = screen.getByTestId("app-shell-mobile-settings");
+    expect(within(settings).getByRole("heading", { name: "Lainnya" })).toBeInTheDocument();
+    expect(
+      within(settings)
+        .getAllByRole("link")
+        .map((link) => link.textContent)
+    ).toEqual(["Page 5", "Page 6"]);
+  });
+
+  it("opens Pengaturan with the account and the menu pages that aren't tabs", async () => {
+    const user = userEvent.setup();
+    const onLogout = vi.fn();
+    const onSelect = vi.fn();
+    renderShell({
+      bottomNav: BOTTOM_NAV,
+      user: { name: "Budi Santoso", description: "PT Contoh · Admin", avatarUrl: "data:," },
+      appVersion: "1.4.0",
+      onLogout,
+      userMenu: [
+        { label: "Profil", href: "/profile", testId: "menu-profile" },
+        { label: "Ubah Password", onSelect, testId: "menu-password" },
+        { label: "Tanpa aksi" },
+      ],
+    });
+    expect(screen.queryByTestId("app-shell-mobile-settings")).not.toBeInTheDocument();
+
+    const tab = screen.getByTestId("app-shell-settings-tab");
+    await user.click(tab);
+    expect(tab).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("link", { name: "Beranda" })).not.toHaveAttribute("aria-current");
+    // The page stays mounted, hidden on mobile.
+    expect(screen.getByText("Isi halaman").parentElement).toHaveClass("contents", "max-md:hidden");
+
+    const settings = screen.getByTestId("app-shell-mobile-settings");
+    const account = within(settings).getByTestId("app-shell-mobile-user");
+    // The logo is the card's faint backdrop, not a row of its own.
+    expect(within(account).getByTestId("app-shell-mobile-brand")).toHaveTextContent("MoNo");
+    expect(within(account).getByTestId("app-shell-mobile-brand")).toHaveAttribute(
+      "aria-hidden",
+      "true"
+    );
+    expect(account).toHaveTextContent("MoNoBSBudi SantosoPT Contoh · Adminv1.4.0");
+    expect(within(settings).getByTestId("menu-profile")).toHaveAttribute("href", "/profile");
+    expect(within(settings).getByTestId("menu-profile")).not.toHaveAttribute("aria-current");
+    // Dashboard and Alert are tabs; the group's pages are listed under its name.
+    expect(within(settings).queryByRole("link", { name: "Dashboard" })).toBeNull();
+    expect(within(settings).queryByRole("heading", { name: "Menu" })).toBeNull();
+    expect(within(settings).getByRole("heading", { name: "Unit Management" })).toBeInTheDocument();
+    expect(within(settings).getByTestId("menu-unit-config")).toHaveAttribute(
+      "href",
+      "/unit/config"
+    );
+
+    await user.click(within(settings).getByTestId("menu-password"));
+    expect(onSelect).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId("app-shell-mobile-settings")).not.toBeInTheDocument();
+
+    await user.click(tab);
+    await user.click(screen.getByRole("button", { name: "Tanpa aksi" }));
+    expect(screen.queryByTestId("app-shell-mobile-settings")).not.toBeInTheDocument();
+
+    await user.click(tab);
+    await user.click(screen.getByTestId("app-shell-mobile-logout"));
+    expect(onLogout).toHaveBeenCalledTimes(1);
+
+    // Tapping the tab again closes it, as does tapping a link tab (even the current one).
+    await user.click(tab);
+    expect(screen.queryByTestId("app-shell-mobile-settings")).not.toBeInTheDocument();
+    await user.click(tab);
+    await user.click(screen.getByRole("link", { name: "Beranda" }));
+    expect(screen.queryByTestId("app-shell-mobile-settings")).not.toBeInTheDocument();
+    await user.click(tab);
+    await user.click(
+      within(screen.getByTestId("app-shell-mobile-settings")).getByTestId("menu-unit-config")
+    );
+    expect(screen.queryByTestId("app-shell-mobile-settings")).not.toBeInTheDocument();
+  });
+
+  it("closes Pengaturan on navigation and marks the current page in it", async () => {
+    const user = userEvent.setup();
+    const { rerender } = renderShell({
+      pathname: "/profile",
+      bottomNav: [{ href: "/alert", label: "Notifikasi", icon: Bell }],
+      userMenu: [{ label: "Profil", href: "/profile" }],
+    });
+    await user.click(screen.getByRole("button", { name: "Pengaturan" }));
+    const settings = screen.getByTestId("app-shell-mobile-settings");
+    expect(within(settings).getByRole("link", { name: "Profil" })).toHaveAttribute(
+      "aria-current",
+      "page"
+    );
+    // Loose items list under Menu; no user, no Keluar.
+    expect(within(settings).getByRole("heading", { name: "Menu" })).toBeInTheDocument();
+    expect(within(settings).getByTestId("menu-dashboard")).not.toHaveAttribute("aria-current");
+    expect(within(settings).queryByTestId("app-shell-mobile-user")).toBeNull();
+    expect(within(settings).queryByTestId("app-shell-mobile-logout")).toBeNull();
+
+    rerender(
+      <AppShell
+        menu={MENU}
+        pathname="/dashboard"
+        brand="MoNo"
+        bottomNav={[{ href: "/alert", label: "Notifikasi", icon: Bell }]}
+      >
+        <p>Isi halaman</p>
+      </AppShell>
+    );
+    expect(screen.queryByTestId("app-shell-mobile-settings")).not.toBeInTheDocument();
+    expect(screen.getByText("Isi halaman").parentElement).not.toHaveClass("max-md:hidden");
+    expect(screen.getByRole("button", { name: "Pengaturan" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
+  });
+
+  it("shows a skeleton account while the user loads, and a bare screen otherwise", async () => {
+    const user = userEvent.setup();
+    renderShell({ bottomNav: BOTTOM_NAV, userLoading: true });
+    await user.click(screen.getByRole("button", { name: "Pengaturan" }));
+    expect(screen.getByTestId("app-shell-mobile-user-loading")).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Akun" })).toBeNull();
   });
 });
 
@@ -260,17 +409,6 @@ describe("AppShell user footer", () => {
     expect(within(menu).queryByRole("separator")).toBeNull();
     expect(within(menu).queryByText(/^v/)).toBeNull();
     expect(within(menu).queryByTestId("app-shell-logout")).toBeNull();
-  });
-
-  it("closes the mobile sheet after choosing an account link", async () => {
-    mobile.value = true;
-    const user = userEvent.setup();
-    renderShell({ user: { name: "Budi" }, userMenu: [{ label: "Profil", href: "/profile" }] });
-    await user.click(screen.getByRole("button", { name: "Buka menu" }));
-    const sheet = await screen.findByRole("dialog");
-    await user.click(within(sheet).getByRole("button", { name: "Akun Budi" }));
-    await user.click(await screen.findByRole("menuitem", { name: "Profil" }));
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 });
 

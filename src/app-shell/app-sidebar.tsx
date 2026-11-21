@@ -43,11 +43,12 @@ export type AppSidebarProps = {
 };
 
 /**
- * The shell's sidebar, in one of four layouts:
- * - wide (desktop, expanded): logo, labelled menu, user footer;
- * - nested (desktop, expanded, on a group's route): icon rail + a panel listing the group;
- * - collapsed (desktop): icon rail only;
- * - mobile: the wide layout in a slide-in sheet, the active group's pages listed inline.
+ * The shell's desktop sidebar, in one of three layouts:
+ * - wide (expanded): logo, labelled menu, user footer;
+ * - nested (expanded, on a group's route): icon rail + a panel listing the group;
+ * - collapsed: icon rail only.
+ *
+ * Nothing renders on mobile: there the bottom nav and its Pengaturan screen take over.
  */
 export function AppSidebar({
   menu,
@@ -61,13 +62,13 @@ export function AppSidebar({
   onLogout,
   appVersion,
 }: AppSidebarProps) {
-  const { state, isMobile, toggleSidebar, setOpenMobile } = useSidebar();
-  // The mobile sheet is always wide, whatever the desktop state.
-  const collapsed = state === "collapsed" && !isMobile;
-  const active = findActiveAppShellEntry(menu, pathname);
-  const nestedGroup = !isMobile && active && isAppShellGroup(active) ? active : null;
+  const { state, isMobile, toggleSidebar } = useSidebar();
+  if (isMobile) return null;
 
-  const closeMobile = () => setOpenMobile(false);
+  const collapsed = state === "collapsed";
+  const active = findActiveAppShellEntry(menu, pathname);
+  const nestedGroup = active && isAppShellGroup(active) ? active : null;
+
   const isActive = (href: string) => isRouteActive(href, pathname);
 
   const collapseToggle = (
@@ -115,33 +116,24 @@ export function AppSidebar({
     </nav>
   );
 
-  /**
-   * A menu row. `groupOpen` marks a group's own row: it links to the first page and
-   * turns primary while one of its pages is open (the page itself gets the bar).
-   */
+  /** A menu row. `groupRow` marks a group's own row: it links to the first page, never current. */
   const pageLink = (
     link: AppShellLink,
-    { child = false, groupOpen }: { child?: boolean; groupOpen?: boolean } = {}
+    { child = false, groupRow = false }: { child?: boolean; groupRow?: boolean } = {}
   ) => {
     const Icon = link.icon;
-    const isGroupRow = groupOpen !== undefined;
-    const current = !isGroupRow && isActive(link.href);
+    const current = !groupRow && isActive(link.href);
     return (
       <Link
         key={link.href}
         href={link.href}
         aria-current={current ? "page" : undefined}
         data-testid={link.testId}
-        onClick={closeMobile}
         className={cn(
           LINK_BASE,
-          isMobile ? "py-3.5" : "py-2.5",
+          "py-2.5",
           child ? "font-medium" : "font-semibold",
-          current
-            ? LINK_ACTIVE
-            : groupOpen
-              ? "text-primary hover:bg-sidebar-foreground/10"
-              : LINK_IDLE
+          current ? LINK_ACTIVE : LINK_IDLE
         )}
       >
         {Icon && <Icon className="size-4 shrink-0" />}
@@ -160,7 +152,6 @@ export function AppSidebar({
       appVersion={appVersion}
       isActive={isActive}
       linkComponent={Link}
-      onItemClick={closeMobile}
     />
   );
 
@@ -206,24 +197,16 @@ export function AppSidebar({
       <>
         <SidebarHeader className="flex flex-row items-center justify-between gap-2 px-4 pt-3">
           <div className="min-w-0">{brand}</div>
-          {!isMobile && collapseToggle}
+          {collapseToggle}
         </SidebarHeader>
         <SidebarContent className="overflow-x-hidden">
           <nav aria-label="Menu" className="flex flex-col gap-0.5 px-3 pt-3">
-            {menu.map((entry) => {
-              if (!isAppShellGroup(entry)) return pageLink(entry);
-              const open = entry === active;
-              return (
-                <div key={entry.id} className="flex flex-col gap-0.5">
-                  {pageLink({ ...entry, href: appShellEntryHref(entry) }, { groupOpen: open })}
-                  {open && (
-                    <div className="ml-4 flex flex-col gap-0.5 border-l border-sidebar-foreground/10 pl-2">
-                      {entry.children.map((child) => pageLink(child, { child: true }))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+            {/* A group's routes open the nested layout, so here a group is one row. */}
+            {menu.map((entry) =>
+              isAppShellGroup(entry)
+                ? pageLink({ ...entry, href: appShellEntryHref(entry) }, { groupRow: true })
+                : pageLink(entry)
+            )}
           </nav>
         </SidebarContent>
         {footer}

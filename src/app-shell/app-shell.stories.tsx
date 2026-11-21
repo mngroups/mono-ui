@@ -8,7 +8,6 @@ import {
   LayoutDashboard,
   List,
   Map as MapIcon,
-  Settings,
   Settings2,
   Truck,
   UserCog,
@@ -42,7 +41,6 @@ const BOTTOM_NAV: AppShellNavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/map", label: "Peta", icon: MapIcon },
   { href: "/alert", label: "Alert", icon: Bell },
-  { href: "/settings", label: "Pengaturan", icon: Settings },
 ];
 
 const TITLES: Record<string, string> = {
@@ -53,7 +51,6 @@ const TITLES: Record<string, string> = {
   "/contractor": "Kontraktor",
   "/unit/configuration": "Konfigurasi Unit",
   "/unit/contractor-mapping": "Mapping Kontraktor",
-  "/settings": "Pengaturan",
   "/profile": "Profil",
 };
 
@@ -160,7 +157,10 @@ export const Loading: Story = {
   render: () => <Shell initialPath="/dashboard" user={undefined} userLoading navigating />,
 };
 
-/** Phone: top bar opens the sidebar sheet; the liquid-glass tab bar shows on the tab roots. */
+/**
+ * Phone: no sidebar or top bar. The liquid-glass tab bar holds up to 5 `bottomNav` tabs plus
+ * Pengaturan, which shows the account (on the logo's backdrop) and the menu pages that aren't tabs.
+ */
 export const Mobile: Story = {
   ...mobileStory,
   render: () => <Shell initialPath="/dashboard" bottomNav={BOTTOM_NAV} />,

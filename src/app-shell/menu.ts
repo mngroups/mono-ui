@@ -43,3 +43,27 @@ export function filterAppShellMenu(
     return children.length ? [{ ...entry, children }] : [];
   });
 }
+
+/** Tabs the mobile bottom nav takes from `bottomNav`; Pengaturan is the sixth. */
+export const MAX_BOTTOM_NAV_TABS = 5;
+
+/** Whether `pathname` is exactly one of the menu's pages (a top-level item or a group's page). */
+export function isAppShellMenuPage(entries: AppShellEntry[], pathname: string): boolean {
+  return entries.some((entry) =>
+    isAppShellGroup(entry)
+      ? entry.children.some((child) => child.href === pathname)
+      : entry.href === pathname
+  );
+}
+
+/**
+ * The menu minus the pages the bottom nav already has: what the mobile
+ * Pengaturan screen lists. A group keeps its other pages and goes when none are left.
+ */
+export function appShellMenuWithout(
+  entries: AppShellEntry[],
+  hrefs: readonly string[]
+): AppShellEntry[] {
+  const taken = new Set(hrefs);
+  return filterAppShellMenu(entries, (href) => !taken.has(href));
+}

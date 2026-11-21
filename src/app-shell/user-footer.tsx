@@ -41,7 +41,6 @@ export function UserFooter({
   appVersion,
   isActive,
   linkComponent: Link,
-  onItemClick,
 }: {
   user?: AppShellUser | null;
   loading: boolean;
@@ -51,8 +50,6 @@ export function UserFooter({
   appVersion?: string;
   isActive: (href: string) => boolean;
   linkComponent: AppShellLinkComponent;
-  /** Called after any item is chosen (closes the mobile sheet). */
-  onItemClick: () => void;
 }) {
   if (loading) {
     return (
@@ -145,7 +142,6 @@ export function UserFooter({
                     href={item.href}
                     aria-current={current ? "page" : undefined}
                     data-testid={item.testId}
-                    onClick={onItemClick}
                   >
                     {item.icon}
                     {item.label}
@@ -158,10 +154,7 @@ export function UserFooter({
                 key={item.label}
                 className={className}
                 data-testid={item.testId}
-                onSelect={() => {
-                  onItemClick();
-                  item.onSelect?.();
-                }}
+                onSelect={item.onSelect}
               >
                 {item.icon}
                 {item.label}
