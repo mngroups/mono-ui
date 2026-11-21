@@ -106,7 +106,7 @@ export function AppSidebar({
                 </Link>
               </span>
             </TooltipTrigger>
-            <TooltipContent side="right" sideOffset={8} showArrow={false}>
+            <TooltipContent side="right" sideOffset={20} showArrow={false}>
               {entry.label}
             </TooltipContent>
           </Tooltip>
