@@ -98,6 +98,27 @@ describe("Sidebar on desktop", () => {
     expect(screen.getByTestId("state")).toHaveTextContent("expanded/false");
   });
 
+  it("still toggles when uncontrolled with onOpenChange only (persist-the-cookie pattern)", async () => {
+    const user = userEvent.setup();
+    const onOpenChange = vi.fn();
+    const { container } = render(
+      <SidebarProvider defaultOpen onOpenChange={onOpenChange}>
+        <Sidebar />
+        <SidebarTrigger />
+        <State />
+      </SidebarProvider>
+    );
+    expect(screen.getByTestId("state")).toHaveTextContent("expanded/false");
+
+    await user.click(container.querySelector('[data-sidebar="trigger"]') as HTMLElement);
+    expect(screen.getByTestId("state")).toHaveTextContent("collapsed/false");
+    expect(onOpenChange).toHaveBeenLastCalledWith(false);
+
+    fireEvent.keyDown(window, { key: "b", ctrlKey: true });
+    expect(screen.getByTestId("state")).toHaveTextContent("expanded/false");
+    expect(onOpenChange).toHaveBeenLastCalledWith(true);
+  });
+
   it("accepts a plain value through setOpen", async () => {
     const user = userEvent.setup();
     function Closer() {
