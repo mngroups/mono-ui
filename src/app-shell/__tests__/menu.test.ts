@@ -4,10 +4,13 @@ import { describe, expect, it } from "vitest";
 import {
   appShellEntryHref,
   appShellEntryMatches,
+  appShellMenuWithout,
   filterAppShellMenu,
   findActiveAppShellEntry,
   isAppShellGroup,
+  isAppShellMenuPage,
   isRouteActive,
+  MAX_BOTTOM_NAV_TABS,
 } from "../menu.js";
 import type { AppShellEntry, AppShellGroup } from "../types.js";
 
@@ -50,5 +53,17 @@ describe("app shell menu helpers", () => {
     expect(onlyMapping).toEqual([{ ...GROUP, children: [GROUP.children[1]] }]);
     expect(filterAppShellMenu(MENU, (href) => href === "/dashboard")).toEqual([MENU[0]]);
     expect(filterAppShellMenu(MENU, () => false)).toEqual([]);
+  });
+
+  it("tells the menu's exact pages and drops the bottom-nav pages from the menu", () => {
+    expect(isAppShellMenuPage(MENU, "/dashboard")).toBe(true);
+    expect(isAppShellMenuPage(MENU, "/unit/mapping")).toBe(true);
+    expect(isAppShellMenuPage(MENU, "/unit/mapping/7")).toBe(false);
+    expect(isAppShellMenuPage(MENU, "/other")).toBe(false);
+    expect(appShellMenuWithout(MENU, ["/dashboard", "/unit/config"])).toEqual([
+      { ...GROUP, children: [GROUP.children[1]] },
+    ]);
+    expect(appShellMenuWithout(MENU, [])).toEqual(MENU);
+    expect(MAX_BOTTOM_NAV_TABS).toBe(5);
   });
 });
