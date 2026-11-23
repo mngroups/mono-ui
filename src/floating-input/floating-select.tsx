@@ -371,6 +371,7 @@ export function FloatingSelect<T extends FieldValues, TExtra = unknown>({
                   onValueChange={(val) => {
                     // Radix reports "" when a programmatic value (reset, draft restore)
                     // lands before its native options mount; no item can be "".
+                    /* v8 ignore next -- @preserve current Radix no longer emits "" in jsdom; the guard stays for the versions and browsers that do */
                     if (val === "") return;
                     field.onChange(val);
                     const selected = visibleOptions.find((opt) => opt.value === val);
