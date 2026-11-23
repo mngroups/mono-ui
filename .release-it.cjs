@@ -8,6 +8,9 @@ module.exports = {
     tagName: "v${version}",
   },
   github: {
+    // The remote may use an SSH host alias (git@github-m134:…); pin the real host for
+    // the release link and API.
+    host: "github.com",
     release: true,
     web: true,
     releaseName: "v${version}",
