@@ -35,11 +35,16 @@ function Harness({
 }
 
 /** jsdom's AnimationEvent ignores `animationName` in its init dict. */
+// jsdom has no AnimationEvent, so React listens for whichever name the style object
+// supports: "animationstart" or, since jsdom 31's cssstyle, "webkitAnimationStart".
+// Fire both; React handles exactly one of them.
 function fireAnimationStart(el: HTMLElement, animationName: string) {
-  const event = new Event("animationstart", { bubbles: true });
-  Object.defineProperty(event, "animationName", { value: animationName });
   act(() => {
-    el.dispatchEvent(event);
+    for (const type of ["animationstart", "webkitAnimationStart"]) {
+      const event = new Event(type, { bubbles: true });
+      Object.defineProperty(event, "animationName", { value: animationName });
+      el.dispatchEvent(event);
+    }
   });
 }
 
