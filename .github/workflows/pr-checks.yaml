@@ -28,10 +28,22 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
-      # Read access to private @mono packages.
-      - name: Configure npm token
+      # Read access to private @mono packages on the GitLab registry (group endpoint, and
+      # the per-project tarball URLs the lockfile records). Without it a cold pnpm store
+      # (any lockfile change) fails with a 404 on the @mono tarballs.
+      - name: Configure registry tokens
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: printf '//registry.npmjs.org/:_authToken=%s\n' "$NPM_TOKEN" > ~/.npmrc
+          GITLAB_NPM_TOKEN: ${{ secrets.GITLAB_NPM_TOKEN }}
+          GITLAB_PACKAGE_GROUP_ID: ${{ vars.GITLAB_PACKAGE_GROUP_ID }}
+        run: |
+          : "${GITLAB_NPM_TOKEN:?Set the GITLAB_NPM_TOKEN secret}"
+          : "${GITLAB_PACKAGE_GROUP_ID:?Set the GITLAB_PACKAGE_GROUP_ID Actions variable}"
+          {
+            printf '//registry.npmjs.org/:_authToken=%s\n' "$NPM_TOKEN"
+            printf '@mono:registry=https://gitlab.com/api/v4/groups/%s/-/packages/npm/\n' "$GITLAB_PACKAGE_GROUP_ID"
+            printf '//gitlab.com/api/v4/groups/%s/-/packages/npm/:_authToken=%s\n' "$GITLAB_PACKAGE_GROUP_ID" "$GITLAB_NPM_TOKEN"
+            printf '//gitlab.com/api/v4/projects/:_authToken=%s\n' "$GITLAB_NPM_TOKEN"
+          } > ~/.npmrc
       - run: pnpm install --frozen-lockfile
       - run: pnpm ${{ matrix.check }}
