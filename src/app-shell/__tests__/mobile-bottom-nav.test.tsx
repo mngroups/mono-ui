@@ -27,9 +27,8 @@ describe("MobileBottomNav", () => {
     expect(screen.getByRole("link", { name: "Peta" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "Dashboard" })).not.toHaveAttribute("aria-current");
     expect(screen.getByTestId("tab-dashboard")).toHaveAttribute("href", "/dashboard");
-    // jsdom normalises calc(); the slot is a third of the track minus its padding.
-    expect(lens(container).style.width).toContain("0.75rem");
-    expect(lens(container).style.width).toMatch(/0\.333|\/ 3/);
+    // jsdom simplifies calc(): a third of the track minus a third of its 0.75rem padding.
+    expect(lens(container).style.width).toBe("calc(33.3333% - 0.25rem)");
     expect(lens(container).style.transform).toBe("translateX(100%)");
     expect(lens(container).style.opacity).toBe("1");
   });
@@ -90,7 +89,7 @@ describe("MobileBottomNav", () => {
     );
     const button = screen.getByRole("button", { name: "Pengaturan" });
     expect(button).toHaveAttribute("aria-pressed", "false");
-    expect(lens(container).style.width).toMatch(/0\.25|\/ 4/);
+    expect(lens(container).style.width).toBe("calc(25% - 0.1875rem)");
     expect(lens(container).style.transform).toBe("translateX(100%)");
 
     fireEvent.click(button);

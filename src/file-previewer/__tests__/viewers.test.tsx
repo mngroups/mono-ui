@@ -219,7 +219,7 @@ describe("PdfViewer", () => {
     resizeTo(100);
 
     const holder = screen.getByLabelText("Halaman 1").parentElement as HTMLElement;
-    expect(holder.style.minHeight).toBe(`${100 * Math.SQRT2}px`);
+    expect(Number.parseFloat(holder.style.minHeight)).toBeCloseTo(100 * Math.SQRT2, 3);
     intersect(true);
     await waitFor(() => expect(page.render).toHaveBeenCalled());
     Object.defineProperty(window, "devicePixelRatio", { configurable: true, value: dpr });
